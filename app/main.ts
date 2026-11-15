@@ -10,5 +10,5 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
 });
 
 server.listen(6379, () => {
-  console.log("Server is running at port 8000");
+  console.log("Server is running at port 6379");
 });
