@@ -6,7 +6,10 @@ import { RESPParser } from "redis-parser-ts";
 const parser = new RESPParser();
 
 parser.on("message", (message) => {
-  console.log(message);
+  const value = String(message);
+  const byteLength = Buffer.byteLength(value, "utf-8");
+  const data =  Buffer.from(`$${byteLength}\r\n${value}\r\n`, "utf-8");
+  console.log(data.toString());
 });
 
 parser.on("error", (error) => {
