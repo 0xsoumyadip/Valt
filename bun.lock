@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "@codecrafters/redis",
+      "dependencies": {
+        "redis-parser-ts": "^1.0.0",
+      },
       "devDependencies": {
         "@types/bun": "latest",
         "@types/node": "^26.6.6",
@@ -16,6 +19,8 @@
     "@types/node": ["@types/node@26.6.6", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-MzQj+8Kx3XI40OmUAE6Qoh58ZMNstNNMwn2nfd3qWsfe7nDNSqJNzes4njhz6AHwrSHOffSLwXU6yb474Q4aog=="],
 
     "bun-types": ["bun-types@1.3.10", "", { "dependencies": { "@types/node": "*" } }, "sha512-tcpfCCl6XWo6nCVnpcVrxQ+9AYN1iqMIzgrSKYMB/fjLtV2eyAVEg7AxQJuCq/26R6HpKWykQXuSOq/21RYcbg=="],
+
+    "redis-parser-ts": ["redis-parser-ts@1.0.0", "", {}, "sha512-8NBD7CNr9q1R8fgHAKgEA4yiGOKVnh7ORXr36Rg2mbLf+RbUOynM+AaUepK7nSG/Bh2D/9yaF8gxRrnhOu6ihw=="],
 
     "undici-types": ["undici-types@8.9.0", "", {}, "sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg=="],
 
