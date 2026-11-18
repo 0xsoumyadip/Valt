@@ -1,7 +1,34 @@
 import * as net from "net";
 import { RESPParser, RESLEncoder } from "redis-parser-ts";
 
-const db = new Map<string, string>();
+type Entry = {
+  value: string,
+  expiry: number | null
+}
+
+const db = new Map<string, Entry>();
+
+function setData(key: string, value: string, ttl: number | null = null) {
+  const expiry = ttl !== null ? Date.now() * 1000 : null;
+  db.set(key, {value, expiry});
+}
+
+function getData(key: string) {
+  const Entry = db.get(key);
+  if(!Entry) return null;
+
+  return Entry.value;
+}
+
+setTimeout(() => {
+  const now = Date.now();
+
+  for(const [key, Entry] of db) {
+    if(Entry.expiry !== null && now >= Entry.expiry){
+      db.delete(key);
+    }
+  }
+}, 1000);
 
 const server: net.Server = net.createServer((connection: net.Socket) => {
   const parser = new RESPParser();
@@ -29,11 +56,12 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
         return;
       }
       case "SET": {
-        if(parts.length !== 3) {
+        if(parts.length <= 3) {
           connection.write(RESLEncoder.error("ERROR wrong numbers of arguments"));
           return;
         }
-        db.set(String(parts[1].value), String(parts[2].value));
+        setData(String(parts[1].value), String(parts[2].value));
+        console.log(db);
         connection.write(RESLEncoder.simple("OK"));
         return;
       }
@@ -42,7 +70,8 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
           connection.write(RESLEncoder.error("ERROR wrong number of arguments"));
           return;
         }
-        const value = String(db.get(parts[1].value));
+        const value = String(getData(parts[1].value));
+        console.log(value);
         connection.write(
           value === undefined ? RESLEncoder.bulk(null) : RESLEncoder.bulk(value)
         );
@@ -58,6 +87,7 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
 
   connection.on("data", (data: Buffer) => {
     parser.feed(data);
+    console.log(data);
   });
 });
 
