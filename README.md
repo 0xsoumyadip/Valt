@@ -1,33 +1,61 @@
-[![progress-banner](https://backend.codecrafters.io/progress/redis/e1f4ed6e-c075-4e63-a117-152067913692)](https://app.codecrafters.io/users/0xsoumyadip?r=2qF)
+# Redis Server in TypeScript
 
-This is a starting point for TypeScript solutions to the
-["Build Your Own Redis" Challenge](https://codecrafters.io/challenges/redis).
+A small Redis-compatible server built as a solution to the [CodeCrafters Build Your Own Redis challenge](https://codecrafters.io/challenges/redis). It listens for client connections over TCP, parses commands encoded with the Redis Serialization Protocol (RESP), and sends RESP replies.
 
-In this challenge, you'll build a toy Redis clone that's capable of handling
-basic commands like `PING`, `SET` and `GET`. Along the way we'll learn about
-event loops, the Redis protocol and more.
+## Current features
 
-**Note**: If you're viewing this repo on GitHub, head over to
-[codecrafters.io](https://codecrafters.io) to try the challenge.
+- `PING` replies with `PONG`.
+- `ECHO <message>` returns the supplied message.
+- `SET <key> <value>` stores a string value.
+- `GET <key>` returns a stored value, or a null bulk reply when the key is missing.
+- Data is held in an in-memory map and is shared by clients while the server process is running.
 
-# Passing the first stage
+This is an educational implementation, not a full Redis replacement. Data is not persisted across restarts, and only the commands listed above are implemented.
 
-The entry point for your Redis implementation is in `app/main.ts`. Study and
-uncomment the relevant code, then run the command below to execute the tests on
-our servers:
+## Requirements
+
+- [Bun](https://bun.sh/) (the project uses Bun to run TypeScript)
+
+## Run the server
+
+Install dependencies:
+
+```sh
+bun install
+```
+
+Start the server on port `6379`:
+
+```sh
+bun run dev
+```
+
+The CodeCrafters launcher is also available:
+
+```sh
+./your_program.sh
+```
+
+Connect with `redis-cli` or another RESP-compatible client. For example:
+
+```sh
+redis-cli -p 6379 PING
+redis-cli -p 6379 SET greeting "hello"
+redis-cli -p 6379 GET greeting
+redis-cli -p 6379 ECHO "hello from Redis"
+```
+
+## Project structure
+
+- `app/main.ts` — TCP server, RESP command handling, and in-memory key-value store.
+- `package.json` — package metadata, dependencies, and the `dev` script.
+- `your_program.sh` — CodeCrafters-compatible launcher.
+- `codecrafters.yml` — CodeCrafters project configuration.
+
+## Submit to CodeCrafters
+
+Use the CodeCrafters CLI from the project directory:
 
 ```sh
 codecrafters submit
 ```
-
-That's all!
-
-# Stage 2 & beyond
-
-Note: This section is for stages 2 and beyond.
-
-1. Ensure you have `bun (1.3)` installed locally
-1. Run `./your_program.sh` to run your Redis server, which is implemented in
-   `app/main.ts`.
-1. Run `codecrafters submit` to submit your solution to CodeCrafters. Test
-   output will be streamed to your terminal.
