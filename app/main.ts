@@ -74,7 +74,7 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
         const value = getData(parts[1].value);
         
         if(value === null) {
-          connection.write("$-1\r\n");
+          connection.write(RESLEncoder.bulk(null));
         }
         
         connection.write(
