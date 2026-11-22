@@ -44,7 +44,7 @@ setInterval(() => {
       db.delete(key);
     }
   }
-}, 1000);
+}, 1);
 
 const server: net.Server = net.createServer((connection: net.Socket) => {
   const parser = new RESPParser();
