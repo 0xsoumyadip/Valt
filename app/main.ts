@@ -17,6 +17,11 @@ function getData(key: string) {
   const Entry = db.get(key);
   if(!Entry) return null;
 
+  if(Entry.expiry == null) {
+    db.delete(key);
+    return null;
+  }
+
   return Entry.value;
 }
 
