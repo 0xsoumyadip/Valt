@@ -25,26 +25,26 @@ function setData(
 }
 
 function getData(key: string) {
-  const Entry = db.get(key);
-  if (!Entry) return null;
+  const entry = db.get(key);
+  if (!entry) return null;
 
-  if (Entry.expiry == null) {
+  if (entry.expiry !== null && Date.now() >= entry.expiry) {
     db.delete(key);
     return null;
   }
 
-  return Entry.value;
+  return entry.value;
 }
 
 setInterval(() => {
   const now = Date.now();
 
-  for (const [key, Entry] of db) {
-    if (Entry.expiry !== null && now >= Entry.expiry) {
+  for (const [key, entry] of db) {
+    if (entry.expiry !== null && now >= entry.expiry) {
       db.delete(key);
     }
   }
-}, 1);
+}, 100);
 
 const server: net.Server = net.createServer((connection: net.Socket) => {
   const parser = new RESPParser();
@@ -80,13 +80,30 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
           );
           return;
         }
-        console.log(parts);
-        let ttl;
-        let ttlCommand;
-        if (parts.length === 4) {
-          ttlCommand = String(parts[3].value);
+
+        let ttlCommand: string | null = null;
+        let ttl: number | null = null;
+        if (parts.length === 5) {
+          ttlCommand = String(parts[3].value).toUpperCase();
           ttl = Number(parts[4].value);
+
+          if (
+            (ttlCommand !== "EX" && ttlCommand !== "PX") ||
+            !Number.isInteger(ttl) ||
+            ttl <= 0
+          ) {
+            connection.write(
+              RESLEncoder.error("ERROR syntax error"),
+            );
+            return;
+          }
+        } else if (parts.length !== 3) {
+          connection.write(
+            RESLEncoder.error("ERROR wrong numbers of arguments"),
+          );
+          return;
         }
+
         setData(
           String(parts[1].value),
           String(parts[2].value),
@@ -103,17 +120,8 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
           );
           return;
         }
-        const value = getData(parts[1].value);
-
-        if (value === null) {
-          connection.write(RESLEncoder.bulk(null));
-        }
-
-        connection.write(
-          value === undefined
-            ? RESLEncoder.bulk(null)
-            : RESLEncoder.bulk(value),
-        );
+        const value = getData(String(parts[1].value));
+        connection.write(RESLEncoder.bulk(value));
         return;
       }
       default:
