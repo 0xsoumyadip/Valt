@@ -9,7 +9,7 @@ type Entry = {
 const db = new Map<string, Entry>();
 
 function setData(key: string, value: string, ttl: number | null = null) {
-  const expiry = ttl !== null ? Date.now() * 1000 : null;
+  const expiry = ttl !== null ? Date.now() + ttl * 1000 : null;
   db.set(key, {value, expiry});
 }
 
@@ -20,7 +20,7 @@ function getData(key: string) {
   return Entry.value;
 }
 
-setTimeout(() => {
+setInterval(() => {
   const now = Date.now();
 
   for(const [key, Entry] of db) {
@@ -56,11 +56,13 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
         return;
       }
       case "SET": {
-        if(parts.length <= 3) {
+        if(parts.length < 3) {
           connection.write(RESLEncoder.error("ERROR wrong numbers of arguments"));
           return;
         }
-        setData(String(parts[1].value), String(parts[2].value));
+        console.log(parts);
+        const ttl = parts.length >= 4 ? Number(parts[4].value) : null;
+        setData(String(parts[1].value), String(parts[2].value), ttl);
         console.log(db);
         connection.write(RESLEncoder.simple("OK"));
         return;
@@ -70,8 +72,8 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
           connection.write(RESLEncoder.error("ERROR wrong number of arguments"));
           return;
         }
-        const value = String(getData(parts[1].value));
-        console.log(value);
+        const value = getData(parts[1].value);
+        
         connection.write(
           value === undefined ? RESLEncoder.bulk(null) : RESLEncoder.bulk(value)
         );
@@ -87,7 +89,6 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
 
   connection.on("data", (data: Buffer) => {
     parser.feed(data);
-    console.log(data);
   });
 });
 
