@@ -63,7 +63,6 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
         console.log(parts);
         const ttl = parts.length >= 4 ? Number(parts[4].value) : null;
         setData(String(parts[1].value), String(parts[2].value), ttl);
-        console.log(db);
         connection.write(RESLEncoder.simple("OK"));
         return;
       }
@@ -73,6 +72,10 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
           return;
         }
         const value = getData(parts[1].value);
+        
+        if(value === null) {
+          connection.write("$-1\r\n");
+        }
         
         connection.write(
           value === undefined ? RESLEncoder.bulk(null) : RESLEncoder.bulk(value)
