@@ -30,11 +30,18 @@ export class DB {
   get(key: string): string | null {
     const data = this.storage.get(key);
     
-    if(data === undefined || !(typeof data === "object" && "value" in data)) {
+    if(data === undefined) {
         return null;
     }
 
-    return data.value;
+    if(typeof data === "object" && "ttl" in data){
+        if(data.ttl !== null && Date.now() >= data.ttl){
+            this.delete(key);
+        }
+        return "value" in data ? data.value : null;
+    }
+
+    return null;
   }
 
   delete(key: string) {
