@@ -1,6 +1,9 @@
 import * as net from "net";
 import { RESPParser, RESLEncoder } from "redis-parser-ts";
 import { db, getData, setData } from "./db/RedisMap";
+import RedisList from "./db/RedisList";
+
+const list = new RedisList();
 
 
 setInterval(() => {
@@ -89,6 +92,26 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
         }
         const value = getData(String(parts[1].value));
         connection.write(RESLEncoder.bulk(value));
+        return;
+      }
+
+      case "RPUSH": {
+        if(parts.length !== 2) {
+          connection.write(RESLEncoder.error("ERROR worng number of arguments"));
+        }
+        const value = list.rpush(String(parts[1].value));
+        connection.write(RESLEncoder.integer(value));
+        return;
+      }
+
+      case "LPUSH": {
+        if(parts.length !== 2) {
+          connection.write(
+            RESLEncoder.error("ERROR wrong number of arguments")
+          )
+        }
+        const value = list.lpush(String(parts[1].value));
+        connection.write(RESLEncoder.integer(value));
         return;
       }
       default:
