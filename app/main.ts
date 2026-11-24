@@ -96,7 +96,7 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
       }
 
       case "RPUSH": {
-        if(parts.length !== 2) {
+        if(parts.length < 2) {
           connection.write(RESLEncoder.error("ERROR worng number of arguments"));
         }
         const value = list.rpush(String(parts[1].value));
@@ -105,7 +105,7 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
       }
 
       case "LPUSH": {
-        if(parts.length !== 2) {
+        if(parts.length < 2) {
           connection.write(
             RESLEncoder.error("ERROR wrong number of arguments")
           )
