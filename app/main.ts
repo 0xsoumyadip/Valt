@@ -92,7 +92,7 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
           );
           return;
         }
-        const value = String(db.get(String(parts[1].value)));
+        const value = db.get(String(parts[1].value));
         connection.write(RESLEncoder.bulk(value));
         return;
       }
@@ -101,7 +101,7 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
         if (parts.length < 2) {
           connection.write(
             RESLEncoder.error("ERROR worng number of arguments"),
-          );
+        );
         }
         const value = db.rpush(String(parts[1].value), String(parts[2].value));
         console.log(db);
@@ -115,6 +115,14 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
             RESLEncoder.error("ERROR wrong number of arguments"),
           );
         }
+
+        const datas = db.lrange(String(parts[1].value), 0, -1);
+        datas?.map((data) => {
+          if(data === String(parts[2].value)){
+            connection.write("");
+          }
+        })
+        
         const value = db.lpush(String(parts[1].value), String(parts[2].value));
         connection.write(RESLEncoder.integer(value));
         return;

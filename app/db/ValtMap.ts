@@ -27,8 +27,14 @@ export class DB {
     this.storage.set(key, { value, ttl: time });
   }
 
-  get(key: string) {
-    return this.storage.get(key);
+  get(key: string): string | null {
+    const data = this.storage.get(key);
+    
+    if(data === undefined || !(typeof data === "object" && "value" in data)) {
+        return null;
+    }
+
+    return data.value;
   }
 
   delete(key: string) {
@@ -62,10 +68,24 @@ export class DB {
 
     if (!(list instanceof ValtList)) {
       throw new Error(
-        "WRONGTYPE Operation against a key holding the wrong type of valye",
+        "WRONGTYPE Operation against a key holding the wrong type of value",
       );
     }
 
     return list.lpush(...value);
+  }
+
+  lrange(key: string, start: number, stop: number):string[] | null {
+    const entry = this.storage.get(key);
+
+    if(entry === undefined) {
+        return null;
+    }
+
+    if(!(entry instanceof ValtList)) {
+        throw new Error("WRONGTYPE Operation against a key holding the wrong type of value")
+    }
+
+    return entry.lrange(start, stop);
   }
 }
