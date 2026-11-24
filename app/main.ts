@@ -1,13 +1,20 @@
 import * as net from "net";
 import { RESPParser, RESLEncoder } from "redis-parser-ts";
-import { db, getData, setData } from "./db/RedisMap";
+import { DB } from "./db/ValtMap.ts";
 
+const db = new DB();
 
 setInterval(() => {
   const now = Date.now();
 
-  for (const [key, entry] of db) {
-    if (entry.expiry !== null && now >= entry.expiry) {
+  for (const [key, entry] of db.storage) {
+    if (
+      entry !== undefined &&
+      typeof entry === "object" &&
+      "ttl" in entry &&
+      entry.ttl !== null &&
+      now >= entry.ttl
+    ) {
       db.delete(key);
     }
   }
@@ -59,9 +66,7 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
             !Number.isInteger(ttl) ||
             ttl <= 0
           ) {
-            connection.write(
-              RESLEncoder.error("ERROR syntax error"),
-            );
+            connection.write(RESLEncoder.error("ERROR syntax error"));
             return;
           }
         } else if (parts.length !== 3) {
@@ -71,7 +76,7 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
           return;
         }
 
-        setData(
+        db.set(
           String(parts[1].value),
           String(parts[2].value),
           ttlCommand,
@@ -87,8 +92,39 @@ const server: net.Server = net.createServer((connection: net.Socket) => {
           );
           return;
         }
-        const value = getData(String(parts[1].value));
+        const value = db.get(String(parts[1].value));
         connection.write(RESLEncoder.bulk(value));
+        return;
+      }
+
+      case "RPUSH": {
+        if (parts.length < 2) {
+          connection.write(
+            RESLEncoder.error("ERROR worng number of arguments"),
+        );
+        }
+        const value = db.rpush(String(parts[1].value), String(parts[2].value));
+        console.log(db);
+        connection.write(RESLEncoder.integer(value));
+        return;
+      }
+
+      case "LPUSH": {
+        if (parts.length < 2) {
+          connection.write(
+            RESLEncoder.error("ERROR wrong number of arguments"),
+          );
+        }
+
+        const datas = db.lrange(String(parts[1].value), 0, -1);
+        datas?.map((data) => {
+          if(data === String(parts[2].value)){
+            connection.write("");
+          }
+        })
+        
+        const value = db.lpush(String(parts[1].value), String(parts[2].value));
+        connection.write(RESLEncoder.integer(value));
         return;
       }
       default:
