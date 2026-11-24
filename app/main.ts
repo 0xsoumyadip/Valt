@@ -1,40 +1,7 @@
 import * as net from "net";
 import { RESPParser, RESLEncoder } from "redis-parser-ts";
+import { db, getData, setData } from "./db/RedisMap";
 
-type Entry = {
-  value: string;
-  expiry: number | null;
-};
-
-const db = new Map<string, Entry>();
-
-function setData(
-  key: string,
-  value: string,
-  ttlCommand: string | null = null,
-  ttl: number | null = null,
-) {
-  let expiry: number | null = null;
-
-  if (ttlCommand === "EX" && ttl) {
-    expiry = Date.now() + ttl * 1000;
-  } else if (ttlCommand === "PX" && ttl) {
-    expiry = Date.now() + ttl;
-  }
-  db.set(key, { value, expiry });
-}
-
-function getData(key: string) {
-  const entry = db.get(key);
-  if (!entry) return null;
-
-  if (entry.expiry !== null && Date.now() >= entry.expiry) {
-    db.delete(key);
-    return null;
-  }
-
-  return entry.value;
-}
 
 setInterval(() => {
   const now = Date.now();
